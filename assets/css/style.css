@@ -143,7 +143,3 @@ main {
     background-image: url('../img/bomb.png');
     background-color: #f11b0c;
 }
-
-.cell.bomb.alternative {
-    background-color: #ee3d31;
-}

@@ -5,6 +5,8 @@ function minesweeper() {
     const normalRatio = 0.181;
     const hardRatio = 0.206;
     var numberOfMines = 0;
+    var numberOfSafeCells = 0;
+    var progress = 0;
     var numberOfFlags = 0;
     var isFirstMove = true;
     var time = 0;
@@ -65,6 +67,7 @@ function minesweeper() {
         }
 
         numberOfFlags = numberOfMines
+        numberOfSafeCells = (rows * columns) - numberOfMines;
         document.getElementById('spnFlags').innerText = numberOfFlags;
     }
 
@@ -76,7 +79,10 @@ function minesweeper() {
             let randomX = Math.floor(Math.random() * rows)
             let randomY = Math.floor(Math.random() * columns)
             
-            if (randomX == x && randomY == y) {
+            if (
+                (randomX >= x-1 && randomX <= x+1) 
+                && (randomY >= y-1 && randomY <= y+1)
+            ) {
                 index--;
             } else {
                 let isAlreadyBomb = cells[randomX][randomY].isBomb;
@@ -125,10 +131,13 @@ function minesweeper() {
         }
 
         cells[x][y].wasReavealed = true;
+        progress++;
     }
 
     function dig(x, y) {
-        renderHint(x, y, cells[x][y].hint);
+        if (!cells[x][y].wasReavealed) {
+            renderHint(x, y, cells[x][y].hint);
+        }
 
         if (cells[x][y].hint == 0) {
             for (let indexRow = x-1; indexRow <= x+1; indexRow++) {
@@ -138,7 +147,11 @@ function minesweeper() {
                             index >=0 && index < cells[0].length 
                             && !(indexRow == x && index == y)
                         ) {
-                            if (!cells[indexRow][index].isBomb && !cells[indexRow][index].wasReavealed){
+                            if (
+                                !cells[indexRow][index].isBomb 
+                                && !cells[indexRow][index].wasReavealed
+                                && !cells[indexRow][index].isFlagged
+                            ){
                                 renderHint(indexRow, index, cells[indexRow][index].hint);
     
                                 if (cells[indexRow][index].hint == 0) {
@@ -182,6 +195,14 @@ function minesweeper() {
         }, numberOfMines * 250 + 250);
     }
 
+    function handleVictory() {
+        stopTimer();
+        setTimeout(() => {
+            alert('Parabéns, você ganhou!');
+            window.location.reload();
+        }, 750);
+    }
+
     function handleDig(x, y) {
         if (isFirstMove) {
             setUpBoard(x, y);
@@ -202,6 +223,12 @@ function minesweeper() {
         }
 
         dig(x, y);
+
+        const hasFinished = progress == numberOfSafeCells;
+
+        if (hasFinished) {
+            handleVictory();
+        }
     }
 
     function renderFlag(x, y) {
